@@ -2,8 +2,8 @@
 
 Practical troubleshooting notes for the de Medeiros Lab / Field Museum **GIGAmacro**
 macro-imaging system. The entries below are distilled from several years of support
-correspondence with GIGAmacro and from problems the lab has hit and solved
-in day-to-day use (2024–2026).
+correspondence with GIGAmacro and from problems the lab has hit in
+day-to-day use (2024–2026).
 
 The system is a motorized **X/Y/Z stage** carrying a **DSLR + macro or telecentric lens
 and a flash powered from the control box**, driven by two Windows programs:
@@ -31,20 +31,20 @@ record; they list what is known and what to collect if it happens again.
 | Symptom | Most likely cause | Go to |
 |---|---|---|
 | Takes one photo at startup, then live view fails / test photos do nothing / capture "sticks" at the first position; console says `mxj: could not find Java 2 Runtime Environment` | Max can't find Java: the `CurrentVersion` registry value was lost in an automatic Java update | [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk) |
-| Capture app won't start, no "test port" screen, Max console stalls | Unresolved — seen after IT changed accounts/Windows edition | [1.2](#12-capture-app-wont-start-properly-often-after-it-updates) |
+| Capture app won't start, no "test port" screen, Max console stalls | Unresolved — seen after IT changed accounts/Windows edition | [1.2](#12-capture-app-wont-start-properly-after-it-changes) |
 | A shot from DSLR Remote works, but Capture won't drive a run | Capture ↔ camera link (Java, USB, or a competing session) | [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk), [2.1](#21-intermittent-camera-connection--capture-freezes-competing-session), [2.2](#22-intermittent-usb-dropouts-keyboard-also-cuts-out) |
 | Test images seem to vanish | High-Speed Mode writes them to `highspeedtemp` | [1.3](#13-test-images-appear-missing-in-high-speed-mode) |
 | Intermittent camera disconnects; capture freezes mid-run | A second user/session has the software open **or** flaky USB | [2.1](#21-intermittent-camera-connection--capture-freezes-competing-session), [2.2](#22-intermittent-usb-dropouts-keyboard-also-cuts-out) |
-| DSLR Remote error "cannot write photo" / can't create folders | New-user config step missed + folder permissions | [2.3](#23-dslr-remote-cannot-write-the-photo--cannot-create-folders) |
+| DSLR Remote error "cannot write photo" / can't create folders | New-user DSLR Remote configuration step missed | [2.3](#23-dslr-remote-cannot-write-the-photo--cannot-create-folders) |
 | Home position wrong after restart | Readout not synced to the controller until you jog | [3.1](#31-home-position-resets-on-software-restart) |
 | New users keep hitting the Z limits | Limit-switch wear / spares needed | [3.2](#32-users-hit-the-z-limits--limit-switch-wear) |
-| Negative number of rows; camera only moves on Z | Capture boundaries reversed | [3.3](#33-negative-row-count--camera-only-moves-on-z) |
+| Negative number of rows; camera only moves on Z | Possibly reversed boundaries (unconfirmed) | [3.3](#33-negative-row-count--camera-only-moves-on-z) |
 | Blurry/doubled stacks; machine drifts in X/Y while stacking | Unresolved — collect logs | [3.4](#34-xy-drift-during-stacking) |
 | Flash not firing at all | Dead flash **or** no power from the control box/adapter | [4.1](#41-flash-not-firing) |
 | Flash skips an image or two on long runs | Flash model QC | [4.2](#42-flash-misfires-on-long-runs) |
-| Lighting inconsistent / shutter visible in frame | Shutter speed above flash sync | [4.4](#44-inconsistent-lighting--dark-band-shutter-sync) |
+| Lighting inconsistent / shutter visible in frame | Shutter speed above flash sync | [4.4](#44-inconsistent-lighting--shutter-visible-shutter-sync) |
 | Stitch puts tiles in the wrong order | Unresolved | [6.1](#61-tiles-stitched-in-the-wrong-order) |
-| PTGui crashes partway through a batch | Random GPU crash | [6.2](#62-ptgui-crashes-mid-batch-gpu) |
+| PTGui crashes partway through a batch | GPU error, possibly random | [6.2](#62-ptgui-crashes-mid-batch-gpu) |
 | PTGui "license expired" | Yearly license lapsed | [6.3](#63-ptgui-license-expired) |
 
 ---
@@ -55,19 +55,20 @@ A few habits that make every problem below faster to solve:
 
 1. **One user at a time.** Only **one** Windows user should have the GIGAmacro software
    (Capture *and* DSLR Remote) open at once. A second session left open in the background
-   is a frequent, confusing cause of "the camera keeps disconnecting" — see
+   has made the camera connection unstable — see
    [2.1](#21-intermittent-camera-connection--capture-freezes-competing-session).
 2. **Capture the log first.** Open the **Max console viewer** from the app menu, copy the
    contents, and paste them into a text file (e.g. `YYYYMMDD_gigamacro_log.txt`) **before**
-   restarting. Java/runtime errors and motion errors show up here, and support needs them.
+   restarting. The Java failure in [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk)
+   was diagnosed from this log, and support asks for it.
 3. **The MaxRT runtime file sometimes fails to save.** If "max runtime" won't save, copy
    the information into Notepad so it isn't lost.
 4. **Installers are local.** GIGAmacro keeps the software installers on the machine under
    **`C:\gigamacro\`** (look for the *software installers* folder). If you need a fresh
    copy and it isn't there, ask GIGAmacro support for the link.
-5. **Isolate the layer.** A quick test: if **a single shot taken directly in DSLR Remote
-   works**, the camera, lens and flash are basically fine and the problem is in the
-   **Capture/motion/stack** layer (Java runtime, USB, a competing session, or the project).
+5. **Isolate the layer.** If **a shot taken directly in DSLR Remote works**, the camera and
+   its connection are fine and the problem is on the **GIGAmacro Capture** side (Java, USB
+   to the control box, a competing session, or the project).
 
 ---
 
@@ -134,9 +135,9 @@ really gone (`java -version` fails, or the `1.8` key is missing). Then the insta
   suggestion, before the log pointed at Java).
 - Check the **Max console** for errors (see [Before you start](#before-you-start)).
 
-### 1.2 Capture app won't start properly (often after IT updates)
+### 1.2 Capture app won't start properly after IT changes
 
-**Unresolved in the record** — fixed on a support call; what was changed wasn't written down.
+**Unresolved in the record** — support offered a Zoom call; the outcome isn't in the emails.
 
 **Symptoms** — After the machine came back from IT (April 2024: separate users added for
 Field Museum accounts, Windows 11 Home upgraded to Pro), **GIGAmacro Capture had trouble
@@ -147,8 +148,8 @@ and stopped responding**.
 1. Open the **Max console** and look for errors — the first thing support asked for.
 2. Confirm Max can still find **Java**: check the `CurrentVersion` registry value (see
    [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk)).
-3. Send the log to support and arrange a call. Support also offered an updated GIGAmacroFlow
-   version at the time; check you are on a current version.
+3. Send the log to support and arrange a call. At the time support also offered a revised
+   version of its workflow software (v0.7.2); check you are on a current version.
 
 ### 1.3 Test images appear "missing" in High-Speed Mode
 
@@ -201,12 +202,13 @@ If that's not it, go to [2.2](#22-intermittent-usb-dropouts-keyboard-also-cuts-o
 
 ### 2.2 Intermittent USB dropouts (keyboard also cuts out)
 
-**Symptoms** — Camera/stage connection drops intermittently; the problem **comes back
-after unplugging and replugging USB**. A strong tell on this machine: the **keyboard also
-stops working** and is restored by replugging USB. That points at the **USB ports**, not
-the camera.
+**Symptoms** — The camera connection fails intermittently and **unplugging and replugging
+the control box's USB brings it back**. A tell on this machine: the **keyboard also stops
+working** at times and is likewise restored by replugging its USB. That points at the
+**USB ports**, not the camera.
 
-**Cause** — The computer's **onboard USB controller is shutting down intermittently.**
+**Likely cause** — The computer's **onboard USB ports shutting down intermittently**
+(support agreed this could cause it).
 
 **Fix** — Install a dedicated **PCIe USB expansion card** and move the GIGAmacro USB
 connections onto it. Support recommended this (Amazon ASIN **B081Y4TK5H**, the card they
@@ -242,11 +244,11 @@ for already-set-up users but fails for **new users**.
 **Symptoms** — "Home" is initialized at **wherever the stage happens to be** when the
 software starts, instead of staying constant between sessions.
 
-**Cause** — On restart, the new Capture version **doesn't automatically sync its on-screen
-readout to the controller's current coordinates.**
+**Cause (support's explanation)** — On restart, the new Capture version **doesn't update
+its position readout to the control box's current coordinates.**
 
-**Fix / workaround** — **Jog any axis once** after launching; the position readout then
-updates to the real controller position. (Known software quirk on GIGAmacro's bug list.)
+**Workaround** — **Jog any axis once** after launching; the readout then updates to the
+real position. Support said they would add this to their bug list.
 
 ### 3.2 Users hit the Z limits / limit-switch wear
 
@@ -263,12 +265,13 @@ with the instrument.
 number of rows**, and when you start a run the **camera only moves on the Z axis** (no
 X/Y).
 
-**Cause** — The **capture boundaries are reversed** (min/max, i.e. positive/negative
-values, flipped). The software has logic to catch reversed boundaries but it can still slip
-through.
+**Unconfirmed cause** — Seen twice in one day (June 2026). Support's guess was **reversed
+boundaries** (positive and negative values flipped); the software has logic to prevent that,
+and support planned to try to reproduce it. No confirmation is in the record.
 
-**Fix** — Re-set the boundaries, making sure the start/end corners are in the correct order
-so the row/column counts come out positive.
+**What to do** — Re-set the boundaries and check the row/column counts are positive before
+starting. If it happens again, save the Max console log and a screenshot of the grid view
+for support. (Possibly related to [3.5](#35-no-grid-shown--camera-moves-sideways-instead-of-imaging).)
 
 ### 3.4 X/Y drift during stacking
 
@@ -304,8 +307,8 @@ and swap it. (Reported for this machine in November 2026 — pending replacement
 > The flash shipped with the system (a non-Canon model) is powered from the control box
 > through a **battery adapter** in its battery compartment; the compartment was modified so
 > the door shuts over the cable. The adapter replaces the batteries, so its **orientation and
-> polarity matter.** Per support, these flashes have **reverse-polarity protection**, so a
-> wrong orientation won't damage them.
+> polarity matter.** Per support, the Canon flashes have **reverse-polarity protection**, so
+> a wrong polarity won't damage them.
 
 ### 4.1 Flash not firing
 
@@ -332,13 +335,13 @@ In June 2025 neither step worked, and the flash was replaced.
 
 ### 4.2 Flash misfires on long runs
 
-**Symptoms** — The flash **skips an image or two** across a long capture run
-(~1,000–2,000 photos); lighting is inconsistent on a handful of frames.
+**Symptoms** — The flash **skips an image or two** during a long capture run
+(1,000–2,000 photos). Support has seen this on some units of the shipped model; it hasn't
+been reported on the lab's machine.
 
-**Cause** — The non-Canon flash model GIGAmacro historically shipped was chosen because it
-**holds its settings when power-cycled**, but **manufacturing quality dropped** in recent
-years and some units intermittently miss a flash on long runs (others are fine — it's
-unit-to-unit).
+**Cause** — GIGAmacro chose the non-Canon model it shipped because it **holds its settings
+when power-cycled**, but **manufacturing quality seems to have dropped** in recent years:
+some units miss a flash now and then on long runs, others are fine.
 
 **Fix / options**
 - For reliability, move to the **Canon MT-26EX** (more expensive but more dependable; it's
@@ -351,10 +354,10 @@ unit-to-unit).
 
 Getting a new flash onto the system:
 
-- **You don't necessarily have to dremel the doors.** The historical mod grinds the battery
-  door (e.g. with a Dremel sanding disk) so it closes over the adapter — but the real
-  requirement is that the **adapter sits snug and won't work loose.** A **shim** after
-  installation can hold it in place without modifying the door.
+- **Modifying the flash is optional.** GIGAmacro grinds the battery compartment (with a
+  Dremel sanding disk) so the door shuts over the adapter, but the real requirement is that
+  the **adapter sits snug and won't work loose.** A **shim** after installation can hold it
+  in place without modifying anything.
 - **Adapter orientation/polarity differs between Canon models.** On the adapter, red is
   positive and the black mark is negative. Support sent reference photos of the correct
   orientation for the **MT-26EX** and **MT-24EX** (email, 16 June 2025). Moving an adapter
@@ -363,7 +366,7 @@ Getting a new flash onto the system:
 - GIGAmacro can **pre-modify a flash and ship it** if you'd rather not do the mechanical
   work.
 
-### 4.4 Inconsistent lighting / dark band (shutter sync)
+### 4.4 Inconsistent lighting / shutter visible (shutter sync)
 
 **Symptoms** — Unreliable lighting across frames, or **the shutter visible over the
 sensor** in some shots.
@@ -415,8 +418,9 @@ support the file list and screenshots of the result.
 18 **got stuck on one of the last projects**, and opening that project manually in
 **PTGui** gave a **GPU error**. PTGui was using the right GPU (RTX 4060).
 
-**Cause** — Support had seen **periodic, seemingly random GPU crashes** in PTGui; other
-users report GPU issues on the PTGui forum: <https://groups.google.com/g/ptgui/search?q=gpu>.
+**Cause** — Unclear. Support hadn't seen this error in PTGui before, but has had periodic,
+**seemingly random GPU crashes**; other users report GPU issues on the PTGui forum:
+<https://groups.google.com/g/ptgui/search?q=gpu>.
 
 **Fix / options**
 1. **Retry** the project to see whether it was a fluke.
@@ -491,4 +495,5 @@ GIGAmacro desktop workflow for large jobs. (Access is internal to the lab.)
 
 Compiled 2026-11-16 from GIGAmacro support correspondence and lab experience (2024–2026).
 It records what was tried and what worked, and marks what is still unresolved. It is
-**not** an official GIGAmacro manual; when in doubt, capture a log and contact support. Corrections and new cases welcome — please open an issue or PR.
+**not** an official GIGAmacro manual; when in doubt, capture a log and contact support.
+Corrections and new cases welcome — please open an issue or PR.
