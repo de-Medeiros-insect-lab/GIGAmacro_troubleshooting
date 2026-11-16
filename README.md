@@ -6,7 +6,7 @@ correspondence with GIGAmacro and from problems the lab has hit and solved
 in day-to-day use (2024–2026).
 
 The system is a motorized **X/Y/Z stage** carrying a **DSLR + macro or telecentric lens
-and a ring/twin flash**, driven by two Windows programs:
+and a flash powered from the control box**, driven by two Windows programs:
 
 - **GIGAmacro Capture** — the motion-control + capture app, built in **Max / MaxRT**
   (Cycling '74 Max runtime). This is what plans the grid and drives the stage.
@@ -21,6 +21,9 @@ in-house stack/stitch/metadata tool (**BulkBug**) for batch processing.
 > single most useful action is to **open the Max console viewer, copy the log, and save
 > it** before you close or restart anything — see [Before you start](#before-you-start).
 
+Entries marked **Unresolved** were reported to GIGAmacro but have no confirmed fix in the
+record; they list what is known and what to collect if it happens again.
+
 ---
 
 ## Quick reference
@@ -28,7 +31,7 @@ in-house stack/stitch/metadata tool (**BulkBug**) for batch processing.
 | Symptom | Most likely cause | Go to |
 |---|---|---|
 | Takes one photo at startup, then live view fails / test photos do nothing / capture "sticks" at the first position; console says `mxj: could not find Java 2 Runtime Environment` | Max can't find Java: the `CurrentVersion` registry value was lost in an automatic Java update | [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk) |
-| Capture app won't start, no "test port" screen, Max console stalls | Software/environment broken (often right after IT updates) | [1.2](#12-capture-app-wont-start-properly-often-after-it-updates) |
+| Capture app won't start, no "test port" screen, Max console stalls | Unresolved — seen after IT changed accounts/Windows edition | [1.2](#12-capture-app-wont-start-properly-often-after-it-updates) |
 | A shot from DSLR Remote works, but Capture won't drive a run | Capture ↔ camera link (Java, USB, or a competing session) | [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk), [2.1](#21-intermittent-camera-connection--capture-freezes-competing-session), [2.2](#22-intermittent-usb-dropouts-keyboard-also-cuts-out) |
 | Test images seem to vanish | High-Speed Mode writes them to `highspeedtemp` | [1.3](#13-test-images-appear-missing-in-high-speed-mode) |
 | Intermittent camera disconnects; capture freezes mid-run | A second user/session has the software open **or** flaky USB | [2.1](#21-intermittent-camera-connection--capture-freezes-competing-session), [2.2](#22-intermittent-usb-dropouts-keyboard-also-cuts-out) |
@@ -36,11 +39,11 @@ in-house stack/stitch/metadata tool (**BulkBug**) for batch processing.
 | Home position wrong after restart | Readout not synced to the controller until you jog | [3.1](#31-home-position-resets-on-software-restart) |
 | New users keep hitting the Z limits | Limit-switch wear / spares needed | [3.2](#32-users-hit-the-z-limits--limit-switch-wear) |
 | Negative number of rows; camera only moves on Z | Capture boundaries reversed | [3.3](#33-negative-row-count--camera-only-moves-on-z) |
-| Blurry/doubled stacks; machine drifts in X/Y while stacking | Mechanical drift during Z moves | [3.4](#34-xy-drift-during-stacking) |
+| Blurry/doubled stacks; machine drifts in X/Y while stacking | Unresolved — collect logs | [3.4](#34-xy-drift-during-stacking) |
 | Flash not firing at all | Dead flash **or** no power from the control box/adapter | [4.1](#41-flash-not-firing) |
 | Flash skips an image or two on long runs | Flash model QC | [4.2](#42-flash-misfires-on-long-runs) |
-| Lighting inconsistent / dark band across frame | Shutter speed above flash sync | [4.4](#44-inconsistent-lighting--dark-band-shutter-sync) |
-| Stitch puts tiles in the wrong order | Import order / naming not honored | [6.1](#61-tiles-stitched-in-the-wrong-order) |
+| Lighting inconsistent / shutter visible in frame | Shutter speed above flash sync | [4.4](#44-inconsistent-lighting--dark-band-shutter-sync) |
+| Stitch puts tiles in the wrong order | Unresolved | [6.1](#61-tiles-stitched-in-the-wrong-order) |
 | PTGui crashes partway through a batch | Random GPU crash | [6.2](#62-ptgui-crashes-mid-batch-gpu) |
 | PTGui "license expired" | Yearly license lapsed | [6.3](#63-ptgui-license-expired) |
 
@@ -127,33 +130,25 @@ really gone (`java -version` fails, or the `1.8` key is missing). Then the insta
 **JavaSoft (Oracle) registry keys** option is the one that matters to Max, not the PATH.
 
 **Quick things to try first**
-- **Rename the project** to something short and simple and retry (a known quick check from
-  support).
+- **Rename the project** to something short and simple and retry (support's first
+  suggestion, before the log pointed at Java).
 - Check the **Max console** for errors (see [Before you start](#before-you-start)).
 
 ### 1.2 Capture app won't start properly (often after IT updates)
 
-**Symptoms** — After the machine comes back from IT (new user accounts, Windows edition
-change, security updates, etc.), **GIGAmacro Capture won't start up properly**, the usual
-**"test port" screen doesn't appear**, and/or the **Max console stalls and stops
-responding**.
+**Unresolved in the record** — fixed on a support call; what was changed wasn't written down.
 
-**Cause** — An OS/account/environment change broke the software's assumptions. On this
-machine it has followed IT work such as adding Field-Museum-linked user accounts and
-upgrading Windows 11 Home → Pro. The underlying trigger is frequently the same missing
-Java runtime as [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk),
-or per-user privileges.
+**Symptoms** — After the machine came back from IT (April 2024: separate users added for
+Field Museum accounts, Windows 11 Home upgraded to Pro), **GIGAmacro Capture had trouble
+starting**, the usual **"test port" screen didn't appear**, and the **Max console stalled
+and stopped responding**.
 
-**Fix / how to diagnose**
-1. Open the **Max console** and look for errors as it starts (this is the first thing
-   support checks).
+**What to do**
+1. Open the **Max console** and look for errors — the first thing support asked for.
 2. Confirm Max can still find **Java**: check the `CurrentVersion` registry value (see
    [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk)).
-3. Check that the problem user has the needed **privileges** and the **same software
-   setup** as a known-good user (see [2.3](#23-dslr-remote-cannot-write-the-photo--cannot-create-folders)
-   and [1.5](#15-make-maxrt-the-default-for-every-user)).
-4. If it persists, grab the console log and set up a screen-share with support — these are
-   usually resolved live rather than by a single setting.
+3. Send the log to support and arrange a call. Support also offered an updated GIGAmacroFlow
+   version at the time; check you are on a current version.
 
 ### 1.3 Test images appear "missing" in High-Speed Mode
 
@@ -167,9 +162,9 @@ or per-user privileges.
 output folder, **slows down**, and **reports too many photos in the buffer** when they
 have actually already been written to the output folder.
 
-**Notes** — Known quirk. Make sure the output folder is writable and uncluttered (see
-[2.3](#23-dslr-remote-cannot-write-the-photo--cannot-create-folders)); if it's blocking
-work, drop out of High-Speed Mode and report it to support with a console log.
+**Unresolved** — reported to support in June 2026 alongside the folder-creation problem in
+[2.3](#23-dslr-remote-cannot-write-the-photo--cannot-create-folders); no specific fix was
+recorded. If it recurs, save the console log and report it.
 
 ### 1.5 Make MaxRT the default for every user
 
@@ -181,8 +176,10 @@ Max editor.
 - Right-click the capture program's **`.maxpat`** file → **Properties** → **Open with** →
   choose **MaxRT**.
 
-If a particular user still can't open Capture the way others can, it's usually a per-user
-setup/permissions gap — compare against a known-good account.
+This alone may not be enough: in October 2024 the lab had apparently already tried it and
+Capture still didn't open properly for other users (an earlier workaround support had
+applied for a specific Max version was hard to replicate). If that happens, arrange a call
+with support.
 
 ---
 
@@ -211,11 +208,11 @@ the camera.
 
 **Cause** — The computer's **onboard USB controller is shutting down intermittently.**
 
-**Fix** — Install a dedicated **PCIe USB expansion card** and move the GIGAmacro (and
-other) USB connections onto it. GIGAmacro now ships machines with such a card for exactly
-this reason. (A card equivalent to Amazon ASIN **B081Y4TK5H** is the one support has
-recommended/used.) After upgrading the USB ports this instability has stayed away in
-practice.
+**Fix** — Install a dedicated **PCIe USB expansion card** and move the GIGAmacro USB
+connections onto it. Support recommended this (Amazon ASIN **B081Y4TK5H**, the card they
+use) and has shipped new systems with one for the last couple of years because of mixed
+results with onboard USB. Support couldn't promise it would fix it, but since the lab
+upgraded the USB ports (2026) the system has run smoothly.
 
 > If you don't have the card yet and need to keep working, unplugging/replugging the USB
 > temporarily clears it — but that's a stopgap, not a fix.
@@ -232,9 +229,8 @@ for already-set-up users but fails for **new users**.
    configuration step that must be done when setting up a new user; if it's skipped, saving
    photos fails. Follow the new-user setup checklist (kept in the lab's *new users*
    materials) and make sure this step is applied for the account that's failing.
-2. **Folder permissions / default security settings** on the account can prevent folder
-   creation. Compare the failing account against a working one; grant the user write access
-   to the capture output location.
+2. If the step above is already done: support suspected **default security settings
+   limiting the account's privileges**. Compare the failing account against a working one.
 3. **Workaround:** manually create the output folder path, then capture.
 
 ---
@@ -257,9 +253,9 @@ updates to the real controller position. (Known software quirk on GIGAmacro's bu
 **Symptoms** — With limits enabled, new users **easily drive into the limits**, raising
 concern about mechanical wear.
 
-**Fix** — Replace a worn/failing **limit switch**. It's a quick job: **two small screws
-per switch.** Keep **spares on hand** (support has shipped spares from Amazon). Train new
-users on safe jogging so they stop short of the limits.
+**Fix** — Replace the **limit switch**. Support calls it about a 5-minute job: **two small
+screws per switch.** Support ordered a set of spares for the lab in June 2026; keep them
+with the instrument.
 
 ### 3.3 Negative row count / camera only moves on Z
 
@@ -276,27 +272,27 @@ so the row/column counts come out positive.
 
 ### 3.4 X/Y drift during stacking
 
-**Symptoms** — Focus stacks come out blurred/doubled; on inspection the **stage drifts
-slightly in X and Y while the Z axis is moving** during a stack. Worst on unattended
-overnight runs.
+**Unresolved.**
 
-**How to diagnose** — This is mechanical. If it recurs, **open the Max console viewer, copy
-the logs, and send them to support** so the motion can be reviewed. Note which axis/axes
-and whether it correlates with Z moves.
+**Symptoms** — Bad focus stacks from an unattended overnight run (June 2026); the stage
+appeared to **move slightly in X and Y while the Z axis moved**.
+
+**What to do** — The cause was not established (support had ideas to test on a call; the
+outcome wasn't recorded). If it recurs, **save the Max console log**, note which axes moved
+and whether it lines up with Z moves, and send both to support.
 
 ### 3.5 No grid shown / camera moves sideways instead of imaging
 
 **Symptoms** — Occasionally, after setting boundaries, Capture **fails to show a grid** and
 the camera **moves sideways** instead of running the capture. Hard to reproduce.
 
-**What to do** — If it happens, **don't just restart** — first **open the Max console
-viewer, copy the logs, and send them to support** so they can diagnose a transient that
-otherwise disappears. (Related to the reversed-boundary behavior in
-[3.3](#33-negative-row-count--camera-only-moves-on-z).)
+**Unresolved** — couldn't be reproduced on the June 2026 support call. If it happens,
+**don't just restart**: first **open the Max console viewer, copy the logs, and send them
+to support**.
 
 ### 3.6 Failing axis stopper
 
-**Symptoms** — A mechanical **stopper on one of the axes fails/loosens.**
+**Symptoms** — The **stopper on one of the axes is failing.**
 
 **Fix** — This is a hardware part; **request a replacement stopper from GIGAmacro support**
 and swap it. (Reported for this machine in November 2026 — pending replacement part.)
@@ -305,11 +301,11 @@ and swap it. (Reported for this machine in November 2026 — pending replacement
 
 ## 4. Flash & lighting
 
-> The GIGAmacro flash is a Canon-style macro twin/ring flash whose **battery compartment is
-> modified** so it can be powered from the control box through an adapter. Because the
-> adapter replaces the batteries, **orientation and polarity of the adapter matter.** The
-> flash has **reverse-polarity protection**, so you **cannot damage it** by experimenting
-> with adapter orientation.
+> The flash shipped with the system (a non-Canon model) is powered from the control box
+> through a **battery adapter** in its battery compartment; the compartment was modified so
+> the door shuts over the cable. The adapter replaces the batteries, so its **orientation and
+> polarity matter.** Per support, these flashes have **reverse-polarity protection**, so a
+> wrong orientation won't damage them.
 
 ### 4.1 Flash not firing
 
@@ -320,19 +316,19 @@ isn't reaching it** (bad contact or wrong orientation).
 
 **Diagnose & fix — in order**
 1. **Reseat the battery adapter.** Reinstall it and **push it firmly** into the flash
-   battery compartment; it can lose contact with the battery tabs. Correct adapter
-   orientation is usually **rotated 180°** from the "obvious" way — and because of the
-   reverse-polarity protection, getting it backwards won't hurt anything.
+   battery compartment; it can lose contact with the battery tabs. Check its orientation
+   (when it was reassembled wrongly in 2025, support's correction was to rotate it 180°).
 2. **Isolate flash vs. power.** Put **ordinary batteries** in the flash (it still accepts
    them) and test:
    - Flash **fires on batteries** → the flash is fine; the problem is the **power input
-     from the control box/adapter** (contact, adapter, or cable).
+     from the control box/adapter**.
    - Flash **still dead on batteries** → the **flash unit is likely dead**; replace it
      (see [4.3](#43-installing--modifying-a-replacement-flash)).
 
-> 💡 Before dismantling: **note the orientation of everything** in the battery
-> compartment (photograph it). The power adapter is a custom modification and is easy to
-> misremember when reassembling.
+In June 2025 neither step worked, and the flash was replaced.
+
+> 💡 Before dismantling: **photograph the battery compartment.** The power adapter is a
+> custom modification and is easy to put back the wrong way.
 
 ### 4.2 Flash misfires on long runs
 
@@ -359,19 +355,18 @@ Getting a new flash onto the system:
   door (e.g. with a Dremel sanding disk) so it closes over the adapter — but the real
   requirement is that the **adapter sits snug and won't work loose.** A **shim** after
   installation can hold it in place without modifying the door.
-- **Adapter orientation/polarity differs by model.** Match the adapter to the flash:
-  - **MT-26EX** — install the battery adapter in that model's orientation (red = positive,
-    black-marked = negative).
-  - **MT-24EX** — orientation differs; you may need to **reverse the polarity** on an
-    existing adapter (loosen the two nuts and reverse the connectors; the adapter comes
-    apart to make this easier). Reverse-polarity protection means a wrong guess is safe.
+- **Adapter orientation/polarity differs between Canon models.** On the adapter, red is
+  positive and the black mark is negative. Support sent reference photos of the correct
+  orientation for the **MT-26EX** and **MT-24EX** (email, 16 June 2025). Moving an adapter
+  to an MT-24EX may require **reversing the polarity**: loosen the two nuts and swap the
+  connectors (it's a tight fit; the adapter can be taken apart to make it easier).
 - GIGAmacro can **pre-modify a flash and ship it** if you'd rather not do the mechanical
   work.
 
 ### 4.4 Inconsistent lighting / dark band (shutter sync)
 
-**Symptoms** — Unreliable lighting across frames, or a **view of the shutter/dark band
-over the sensor** in some shots.
+**Symptoms** — Unreliable lighting across frames, or **the shutter visible over the
+sensor** in some shots.
 
 **Cause** — **Shutter speed set above the flash sync speed.** If you use **1/250 s**, the
 flash may not synchronize.
@@ -386,9 +381,9 @@ flash may not synchronize.
 
 - Use a proper **lens-cleaning kit** (gentle brush, cleaning solution, microfiber cloth) or
   **Zeiss lens wipes**; wipe **gently**. Try **blown air** first for loose particles.
-- If a **stubborn spot survives** cloth + solution + air, it may be on an **interior
-  element** — don't force it. Stop and ask for the right tool / support rather than
-  scrubbing a coated or telecentric element.
+- If a **stubborn spot survives** cloth + solution + air (as happened on the
+  OptoEngineering lens in June 2024), check whether it's on an **interior element** before
+  rubbing harder, and use a proper lens-cleaning tool for it.
 
 ### 5.2 "Manually adjusted" depth-of-field warning (OptoEngineering lens)
 
@@ -404,33 +399,28 @@ is meaningful only for variable lenses such as the Canon MP-E 65 mm.)
 
 ### 6.1 Tiles stitched in the wrong order
 
-**Symptoms** — Capture and stacking succeed, but **stitching places tiles in the wrong
-order**, even though the **row/column numbers in the filenames are correct** (e.g. a 10×9
-grid comes out scrambled).
+**Unresolved in the record.**
 
-**How to diagnose / fix**
-- Confirm the stitcher is actually **reading tile positions from the filenames** (correct
-  row/column convention) rather than import order; re-import honoring the naming.
-- Rule out overlap problems from **parallax** (see note below) vs. a true ordering bug.
-- If the order is still wrong with correct names, send the file list + a screenshot to
-  support; this has been reported and worked through with GIGAmacro.
-- **Parallax tip:** some tile mismatch is parallax at tile edges — maximize overlap and
-  keep specimens within the usable (flatter) center of the field to reduce it.
+**Symptoms** — April 2024 test run on boxes of beetles: capture was fine, but **stitching
+placed tiles in the wrong order** even though the **row/column numbers in the filenames
+were correct** (10 rows × 9 columns). Some parallax was also making tiles hard to match.
+
+**What to do** — The emails don't record the cause or fix (it may have been an import
+mistake). If it happens, check how the images were imported into the stitcher, then send
+support the file list and screenshots of the result.
 
 ### 6.2 PTGui crashes mid-batch (GPU)
 
-**Symptoms** — A batch stitches fine for a while (small batches are OK), then **gets stuck
-on one project**; opening that project manually in **PTGui** throws a **GPU-related
-error/crash**. PTGui is using the correct GPU (e.g. an RTX 4060).
+**Symptoms** — In March 2025 a batch of 10 stitched fine through GIGAmacroFlow; a batch of
+18 **got stuck on one of the last projects**, and opening that project manually in
+**PTGui** gave a **GPU error**. PTGui was using the right GPU (RTX 4060).
 
-**Cause** — **Random/intermittent GPU crashes** in PTGui — a known, seemingly random issue
-(others report it on the PTGui forum: <https://groups.google.com/g/ptgui/search?q=gpu>).
+**Cause** — Support had seen **periodic, seemingly random GPU crashes** in PTGui; other
+users report GPU issues on the PTGui forum: <https://groups.google.com/g/ptgui/search?q=gpu>.
 
 **Fix / options**
-1. **Retry** the failed project — it's often a one-off fluke.
-2. If it recurs, **disable GPU acceleration** in PTGui and stitch on CPU (slower but
-   stable).
-3. Keep batches moderate so one bad project doesn't stall a long queue.
+1. **Retry** the project to see whether it was a fluke.
+2. If it persists, **disable GPU acceleration** in PTGui (it will be slower).
 
 ### 6.3 PTGui "license expired"
 
@@ -450,21 +440,20 @@ has used):
   <https://www.heliconsoft.com/adobedng/> (install the **Adobe DNG Converter**).
 - CLI reference:
   <https://www.heliconsoft.com/focus/help/english/HeliconFocus.html#HF_COM_LINE>.
-- Example invocation (macOS paths; adapt per machine) that worked well for **flat
-  subjects** such as grasshopper wings — expect to tune for more 3-D structures:
+- Example invocation on a Mac (adjust the path on Windows) that worked well for **flat
+  subjects** such as grasshopper wings; untested on more 3-D specimens:
 
   ```
-  HeliconFocus -silent -save:$FILENAME.dng -sort:asc -rp:8 -sp:4 -va:3 -ha:3 -im:2 -dmf:3 -ma:5 -mp:1 $FOLDER
+  /Applications/HeliconFocus.app/Contents/MacOS/HeliconFocus -silent -save:$FILENAME.dng -sort:asc -rp:8 -sp:4 -va:3 -ha:3 -im:2 -dmf:3 -ma:5 -mp:1 $FOLDER
   ```
 
   where `$FOLDER` holds the source frames and `$FILENAME` is the output name.
 
 ### 6.5 In-house batch processing (BulkBug)
 
-The lab also runs an **in-house tool (BulkBug)** that stacks, stitches, and adds scale
-bars/metadata to GIGAmacro folders in batch, and can be adapted (together with
-**DrawerDissect**) to detect specimens in trays. Use it as an alternative/complement to the
-GIGAmacro desktop workflow for large jobs. (Details and access are internal to the lab.)
+The lab also runs an **in-house tool (BulkBug)** that stacks and stitches GIGAmacro
+captures and detects insects in bulk-sample trays. Use it as an alternative to the
+GIGAmacro desktop workflow for large jobs. (Access is internal to the lab.)
 
 ---
 
@@ -501,5 +490,5 @@ GIGAmacro desktop workflow for large jobs. (Details and access are internal to t
 ### About this guide
 
 Compiled 2026-11-16 from GIGAmacro support correspondence and lab experience (2024–2026).
-It records real fixes but is **not** an official GIGAmacro manual; when in doubt, capture a
-log and contact support. Corrections and new cases welcome — please open an issue or PR.
+It records what was tried and what worked, and marks what is still unresolved. It is
+**not** an official GIGAmacro manual; when in doubt, capture a log and contact support. Corrections and new cases welcome — please open an issue or PR.
