@@ -1,8 +1,7 @@
 # GIGAmacro Troubleshooting Guide
 
-Practical troubleshooting notes for the de Medeiros Lab / Field Museum **GIGAmacro**
-macro-imaging system. The entries below are distilled from several years of support
-correspondence with GIGAmacro and from problems the lab has hit in
+Practical troubleshooting notes for a **GIGAmacro** macro-imaging system. The entries
+below are distilled from support correspondence with GIGAmacro and from problems hit in
 day-to-day use (2024–2026).
 
 The system is a motorized **X/Y/Z stage** carrying a **DSLR + macro or telecentric lens
@@ -91,9 +90,8 @@ A few habits that make every problem below faster to solve:
 **Cause** — Java is usually **still installed**; Max just **can't find it**. Max's Java
 bridge (`mxj`) locates Java through the registry: it reads
 `HKLM\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion` (normally `1.8`) and follows
-that subkey to `jvm.dll`. On this machine centrally managed patching
-upgrades OpenJDK (Eclipse Temurin JRE 8) automatically about once a
-month, and an upgrade can leave the `1.8` subkey in place but **drop the `CurrentVersion`
+that subkey to `jvm.dll`. On this machine centrally managed patching upgrades OpenJDK
+(Eclipse Temurin JRE 8) automatically about once a month, and an upgrade can leave the `1.8` subkey in place but **drop the `CurrentVersion`
 value**. Without it, `mxj` fails. On Windows, Capture's `shell` object is itself a Java
 class (`shell.class`, loaded through `mxj`), and it is what runs `DSLRRemoteTest.exe` to fire
 the camera. So the capture commands are printed in the console but **never executed**, and
@@ -101,8 +99,8 @@ no photos are taken. (The one photo at startup is triggered by the control box, 
 `shell`.)
 
 Seen twice in 2026, each a few days after an automatic Java update: 8/25 update → failed
-8/31, and 11/10 update → failed 11/16. Java is **not** being removed: the MSI logs show
-no removal of Java, and `java -version` works throughout.
+8/31, and 11/10 update → failed 11/16. Java is **not** being removed: the MSI logs show no
+removal of Java, and `java -version` works throughout.
 
 **Diagnose** (any terminal):
 ```
@@ -126,7 +124,7 @@ restores the value, and writes `setup-cmd.log` next to itself.
 
 **Don't** keep running the bundled `OpenJDK8U-jre_x64_windows_hotspot_8u292b10.msi` from
 `C:\gigamacro\`: it fails with error 1603 ("a later version … is already installed") because
-the IT-managed Java is newer. That's expected and harmless. Reinstall Java only if it is
+the centrally managed Java is newer. That's expected and harmless. Reinstall Java only if it is
 really gone (`java -version` fails, or the `1.8` key is missing). Then the installer's
 **JavaSoft (Oracle) registry keys** option is the one that matters to Max, not the PATH.
 
@@ -139,8 +137,8 @@ really gone (`java -version` fails, or the `1.8` key is missing). Then the insta
 
 **Unresolved in the record** — support offered a Zoom call; the outcome isn't in the emails.
 
-**Symptoms** — After the machine came back from IT (April 2024: separate users added for
-Field Museum accounts, Windows 11 Home upgraded to Pro), **GIGAmacro Capture had trouble
+**Symptoms** — After the machine came back from IT (April 2024: separate Windows users
+added for institutional logins, Windows 11 Home upgraded to Pro), **GIGAmacro Capture had trouble
 starting**, the usual **"test port" screen didn't appear**, and the **Max console stalled
 and stopped responding**.
 
