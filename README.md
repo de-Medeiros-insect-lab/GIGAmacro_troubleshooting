@@ -1,8 +1,8 @@
 # GIGAmacro Troubleshooting Guide
 
-Practical troubleshooting notes for a **GIGAmacro** macro-imaging system. The entries
-below are distilled from support correspondence with GIGAmacro and from problems hit in
-day-to-day use (2024–2026).
+Practical troubleshooting notes for the de Medeiros Lab / Field Museum **GIGAmacro**
+macro-imaging system. The entries below are distilled from support correspondence with
+GIGAmacro and from problems the lab has hit in day-to-day use (2024–2026).
 
 The system is a motorized **X/Y/Z stage** carrying a **DSLR + macro or telecentric lens
 and a flash powered from the control box**, driven by two Windows programs:
@@ -138,7 +138,7 @@ really gone (`java -version` fails, or the `1.8` key is missing). Then the insta
 **Unresolved in the record** — support offered a Zoom call; the outcome isn't in the emails.
 
 **Symptoms** — After the machine came back from IT (April 2024: separate Windows users
-added for institutional logins, Windows 11 Home upgraded to Pro), **GIGAmacro Capture had trouble
+added for Field Museum logins, Windows 11 Home upgraded to Pro), **GIGAmacro Capture had trouble
 starting**, the usual **"test port" screen didn't appear**, and the **Max console stalled
 and stopped responding**.
 
