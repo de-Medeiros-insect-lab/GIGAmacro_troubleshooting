@@ -27,7 +27,7 @@ in-house stack/stitch/metadata tool (**BulkBug**) for batch processing.
 
 | Symptom | Most likely cause | Go to |
 |---|---|---|
-| Takes one photo at startup, then live view fails / test photos do nothing / capture "sticks" at the first position | Java (OpenJDK) runtime missing | [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk) |
+| Takes one photo at startup, then live view fails / test photos do nothing / capture "sticks" at the first position; console says `mxj: could not find Java 2 Runtime Environment` | Max can't find Java: the `CurrentVersion` registry value was lost in an automatic Java update | [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk) |
 | Capture app won't start, no "test port" screen, Max console stalls | Software/environment broken (often right after IT updates) | [1.2](#12-capture-app-wont-start-properly-often-after-it-updates) |
 | A shot from DSLR Remote works, but Capture won't drive a run | Capture ↔ camera link (Java, USB, or a competing session) | [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk), [2.1](#21-intermittent-camera-connection--capture-freezes-competing-session), [2.2](#22-intermittent-usb-dropouts-keyboard-also-cuts-out) |
 | Test images seem to vanish | High-Speed Mode writes them to `highspeedtemp` | [1.3](#13-test-images-appear-missing-in-high-speed-mode) |
@@ -77,31 +77,59 @@ A few habits that make every problem below faster to solve:
   photos do nothing**, and a project run **moves to the first position and stays there
   forever**.
 - A shot taken **directly from DSLR Remote still works**.
-- The Max console log may show **JavaScript / Java runtime errors**.
+- The Max console log shows:
+  ```
+  mxj: could not find Java 2 Runtime Environment.
+  (mxj) mxj_platform_init failed. Could not initialize the Java Runtime Environment.
+  newobj: shell: No such object
+  ```
 
-**Cause** — The **Java runtime (OpenJDK)** that GIGAmacro Capture needs is **not installed
-/ was removed**. This has recurred several times on this machine.
+**Cause** — Java is usually **still installed**; Max just **can't find it**. Max's Java
+bridge (`mxj`) locates Java through the registry: it reads
+`HKLM\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion` (normally `1.8`) and follows
+that subkey to `jvm.dll`. On this machine centrally managed patching
+upgrades OpenJDK (Eclipse Temurin JRE 8) automatically about once a
+month, and an upgrade can leave the `1.8` subkey in place but **drop the `CurrentVersion`
+value**. Without it, `mxj` fails. On Windows, Capture's `shell` object is itself a Java
+class (`shell.class`, loaded through `mxj`), and it is what runs `DSLRRemoteTest.exe` to fire
+the camera. So the capture commands are printed in the console but **never executed**, and
+no photos are taken. (The one photo at startup is triggered by the control box, not by
+`shell`.)
 
-**Fix**
-1. Reinstall **OpenJDK** from the installer in **`C:\gigamacro\`** (*software installers*
-   folder). If it isn't there, request the OpenJDK installer from GIGAmacro support.
-2. **During install, tick the option to add Java to the environment (PATH).** The runtime
-   is useless to Capture if it isn't on the PATH — this checkbox is the step people miss.
-3. Restart GIGAmacro Capture and confirm live view and a test photo work before running a
-   project.
+Seen twice in 2026, each a few days after an automatic Java update: 8/25 update → failed
+8/31, and 11/10 update → failed 11/16. Java is **not** being removed: the MSI logs show
+no removal of Java, and `java -version` works throughout.
+
+**Diagnose** (any terminal):
+```
+reg query "HKLM\SOFTWARE\JavaSoft\Java Runtime Environment" /v CurrentVersion
+```
+If it says it is *unable to find the specified registry key or value*, this is the problem.
+
+**Fix** — In a **Command Prompt opened with "Run as administrator"**:
+```
+reg add "HKLM\SOFTWARE\JavaSoft\Java Runtime Environment" /v CurrentVersion /t REG_SZ /d 1.8 /f
+```
+Then fully close and reopen GIGAmacro Capture and confirm live view and a test photo work.
+
+**Permanent fix (installed on the imaging PC 2026-11-16)** — A scheduled task,
+`\GIGAmacro\Restore JavaSoft CurrentVersion`, runs as SYSTEM **at startup** and **a minute
+after any Windows Installer activity** (so right after each automatic Java update). It puts
+`CurrentVersion = 1.8` back if the `1.8` key exists. To reinstall it (e.g. on a rebuilt PC),
+right-click [`fixes/java-currentversion/setup.cmd`](fixes/java-currentversion/setup.cmd) →
+**Run as administrator**. It applies the value, registers the task, tests that the task
+restores the value, and writes `setup-cmd.log` next to itself.
+
+**Don't** keep running the bundled `OpenJDK8U-jre_x64_windows_hotspot_8u292b10.msi` from
+`C:\gigamacro\`: it fails with error 1603 ("a later version … is already installed") because
+the IT-managed Java is newer. That's expected and harmless. Reinstall Java only if it is
+really gone (`java -version` fails, or the `1.8` key is missing). Then the installer's
+**JavaSoft (Oracle) registry keys** option is the one that matters to Max, not the PATH.
 
 **Quick things to try first**
 - **Rename the project** to something short and simple and retry (a known quick check from
   support).
 - Check the **Max console** for errors (see [Before you start](#before-you-start)).
-
-> 🔎 **Why it keeps coming back.** On this machine the OpenJDK removal is caused by
-> **automated updates running in the background** on the computer, which remove or break
-> the OpenJDK install — so the problem **recurs** even after a clean reinstall.
-> Reinstalling OpenJDK (above) is the **interim fix**; the **durable fix** is to stop the
-> automated updates from removing it, which is being worked on separately. If you hit this,
-> reinstall, confirm Java is present and on PATH (`java -version` in a terminal), and note
-> the date so the recurrences can be tracked.
 
 ### 1.2 Capture app won't start properly (often after IT updates)
 
@@ -119,7 +147,7 @@ or per-user privileges.
 **Fix / how to diagnose**
 1. Open the **Max console** and look for errors as it starts (this is the first thing
    support checks).
-2. Confirm the **Java/OpenJDK** runtime is still installed and on PATH (see
+2. Confirm Max can still find **Java**: check the `CurrentVersion` registry value (see
    [1.1](#11-capture-wont-take-photos--sticks-at-the-first-position-java--openjdk)).
 3. Check that the problem user has the needed **privileges** and the **same software
    setup** as a known-good user (see [2.3](#23-dslr-remote-cannot-write-the-photo--cannot-create-folders)
@@ -448,7 +476,7 @@ GIGAmacro desktop workflow for large jobs. (Details and access are internal to t
 |---|---|
 | Software installers | `C:\gigamacro\` (*software installers* folder) |
 | Capture app | GIGAmacro Capture, running on **Max / MaxRT**; project files are `.maxpat` |
-| Required runtime | **Java / OpenJDK** — must be installed **and on PATH** |
+| Required runtime | **Java 8** (Eclipse Temurin, kept up to date by central patch management). Max finds it through `HKLM\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion` = `1.8`; the `\GIGAmacro\Restore JavaSoft CurrentVersion` task keeps that set |
 | Camera control | **DSLR Remote Pro** (Breeze Systems) |
 | Stitching | **PTGui** (often via **GIGAmacroFlow**) |
 | Focus stacking | **Helicon Focus** / Zerene |
