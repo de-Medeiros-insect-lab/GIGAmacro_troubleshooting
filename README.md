@@ -1,8 +1,9 @@
 # GIGAmacro Troubleshooting Guide
 
-Practical troubleshooting notes for the de Medeiros Lab / Field Museum **GIGAmacro**
-macro-imaging system. The entries below are distilled from support correspondence with
-GIGAmacro and from problems the lab has hit in day-to-day use (2024–2026).
+A summary of the problems we have solved with the **GIGAmacro** macro-imaging system at
+the Field Museum (de Medeiros Lab), 2024–2026, drawn from our support correspondence with
+GIGAmacro and day-to-day use. A few problems are still open; those are marked
+**Unresolved**.
 
 The system is a motorized **X/Y/Z stage** carrying a **DSLR + macro or telecentric lens
 and a flash powered from the control box**, driven by two Windows programs:
