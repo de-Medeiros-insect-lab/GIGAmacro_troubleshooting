@@ -95,14 +95,13 @@ A few habits that make every problem below faster to solve:
   support).
 - Check the **Max console** for errors (see [Before you start](#before-you-start)).
 
-> 🔎 **Open item (as of 2026-11-16, unverified).** The symptoms above recurred in
-> November 2026 and support again suspected OpenJDK had been removed — possibly by **new
-> IT endpoint-security software silently uninstalling it** in the background. As of this
-> writing that cause is **not confirmed**, and reinstalling OpenJDK has **not yet been
-> verified** to resolve this occurrence. If you hit this: (a) check with IT whether their
-> security tooling is removing OpenJDK; (b) confirm Java is actually present/on PATH after
-> reinstall (`java -version` in a terminal); and (c) record whether the reinstall fixed it,
-> so we know if a permanent exclusion/allowlist from IT is needed.
+> 🔎 **Why it keeps coming back.** On this machine the OpenJDK removal is caused by
+> **automated updates running in the background** on the computer, which remove or break
+> the OpenJDK install — so the problem **recurs** even after a clean reinstall.
+> Reinstalling OpenJDK (above) is the **interim fix**; the **durable fix** is to stop the
+> automated updates from removing it, which is being worked on separately. If you hit this,
+> reinstall, confirm Java is present and on PATH (`java -version` in a terminal), and note
+> the date so the recurrences can be tracked.
 
 ### 1.2 Capture app won't start properly (often after IT updates)
 
